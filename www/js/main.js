@@ -1,15 +1,41 @@
 /* 
 Function to check mandatory objects
 */
-  const checkMandatoryies = () => {
-    console.log('Notification', 'Notification' in window)
-    console.log('serviceWorker', 'serviceWorker' in navigator)
-
+  const checkMandatoryies = (info) => {
     // Check 'Notification' and 'ServiceWorker'
-    if( 'Notification' in window && 'serviceWorker' in navigator ){ return true }
-    else{ return false };
+    let isReady = false
+    if( 'Notification' in window === false ){ info.innerText = `push notification are not supported` }
+    if( 'serviceWorker' in navigator === false ){ info.innerText = `service workers are not supported` }
+    else if( 'Notification' in window && 'serviceWorker' in navigator ){ 
+      info.innerText = `web navigator is ready`;
+      isReady = true;
+    }
+
+    // Return validation
+    return isReady;
   }
 //
+
+/* 
+Function to set socketClient
+*/
+  const initSocketClient = async (subscriberList) => {
+    // Create socket client
+    const socket = io();
+
+    // Bind 'new-subsciption' emitter
+    socket.on('new-subsciption', msg => {
+      // Parse Json
+      const jsonResponse = JSON.parse(msg)
+
+      // Append DOM elements
+      let li = document.createElement('li');
+      li.appendChild( addButton('subscriber-id', jsonResponse.id, `User ${jsonResponse.navigator} ${jsonResponse.id}`) )
+      subscriberList.appendChild(li)
+    });
+  }
+//
+
 
 /* 
 Function to get subscriber list
@@ -29,20 +55,36 @@ Function to send subscriber list
 
     // Loop on subsciber list
     for(let item of subscriberList){
-      // Create DOM elements
-      let li = document.createElement('li');
-      let button = document.createElement('button');
-      button.innerText = `User ${item.id}`;
-
-      // Bind click event
-      button.addEventListener('click', () => {
-        console.log(button)
-      })
+      // Define navigator service
+      let navigatoreName = `webpush`;
+      if( item.endpoint.indexOf('googleapis') !== -1 ){ navigatoreName = 'googleapis' }
+      else if( item.endpoint.indexOf('services.mozilla') !== -1 ){ navigatoreName = 'services.mozilla' };
 
       // Append DOM elements
-      li.appendChild(button)
+      let li = document.createElement('li');
+      li.appendChild( addButton('subscriber-id', item.id, `User ${navigatoreName} ${item.id}`) )
       list.appendChild(li)
     }
+  }
+//
+
+/* 
+Function to create DOM button
+*/
+  const addButton = (attribute, id, content) => {
+    // Set button content
+    let button = document.createElement('button');
+    button.setAttribute(attribute, id)
+    button.innerText = content;
+
+    // Bind click event
+    button.addEventListener('click', async () => {
+      // Send push notification within the API
+      await new FETCHrequest('/push/notification', 'POST', { subscriber: button.getAttribute('subscriber-id') }).sendRequest();
+    })
+
+    // Return DOM elements
+    return button;
   }
 //
 
@@ -74,24 +116,23 @@ Function to register service worker
 Start interface
 */
   document.addEventListener('DOMContentLoaded', async () => {
-    
-
     // Declaration
     const permissionButton = document.querySelector('.permission-button');
     const subscriberList = document.querySelector('.subscriber-list');
+    const headerInfo = document.querySelector('.header-info');
+
+    // Init Socket Client
+    initSocketClient(subscriberList);
 
     // Display subscribers
     await displaySubscribers(subscriberList);
     
     // Check navigator mandatories
-    const navigatorIsReady = checkMandatoryies();
+    const navigatorIsReady = checkMandatoryies(headerInfo);
 
     // Check notification permission if navigator is ready
     let notificationPermission = Notification.permission;
     if(navigatorIsReady && notificationPermission !== 'granted'){
-      // Display button
-      permissionButton.classList.remove('hidden');
-
       // Bind click to set notification permission
       permissionButton.addEventListener('click', async () => {
         // Get permission
@@ -100,7 +141,8 @@ Start interface
         // Check permission
         if(permission === 'granted'){
           // Hide button
-          permissionButton.classList.add('hidden');
+          permissionButton.innerHTML = `Notification <b>enabled</b>`
+          permissionButton.disabled = true;
 
           // Register service worker
           registerServiceWorker();
@@ -110,6 +152,10 @@ Start interface
     else if(navigatorIsReady && notificationPermission === 'granted'){
       // Register service worker
       await registerServiceWorker();
+
+      // Hide button
+      permissionButton.innerHTML = `Notification <b>enabled</b>`
+      permissionButton.disabled = true;
     }
   })
 //

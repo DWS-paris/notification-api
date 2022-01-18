@@ -50,11 +50,13 @@
         <header>
             <div>
                 <img src="./img/logo.svg" alt="Logo dwsapp.io">
-                <h1>DWSAPP.IO <span>P5.js & ML5.js for Creative Design <b id="header-info">Loading libraries...</b></span></h1>
+                <h1>DWSAPP.IO <span>P5.js & ML5.js for Creative Design <b class="header-info">Loading libraries...</b></span></h1>
+
+                <button class="permission-button">Enable notifications</button>
             </div>
         </header>
         <main>
-            <button class="permission-button hidden">Enable notifications</button>
+            <h2>Subscriber list</h2>
             <ul class="subscriber-list"></ul>
         </main>
         <footer>
@@ -64,6 +66,7 @@
         </footer>
         
         <!-- Load page scripts -->
+		<script src="https://cdn.socket.io/4.4.1/socket.io.min.js" integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H" crossorigin="anonymous"></script>
         <script src="./js/fetch.class.js"></script>
         <script src="./js/main.js"></script>
     </body>
