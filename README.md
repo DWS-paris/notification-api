@@ -16,7 +16,7 @@ Les push notifications, ou notifications push, sont des messages d’alerte envo
 
 <br>
 
-# Utlisation de ce répertoire
+## Utlisation de ce répertoire
 
 Le projet développé dans ce répertoire met en place les principes de [Notification Push](https://mzl.la/3KkO6w0) et de [WebSocket](https://mzl.la/3rrwLsz) dans un serveur [Node.js](https://nodejs.org/en/) qui enregistre les informations de souscription dans un fichier [JSON](https://bit.ly/3fCdcbu) avec le module [JSON Server](https://bit.ly/3GULsv3). Le choix à été fait d'utiliser un système simple pour le stockage des informations, mais il vous faut néamoins installer [JSON Server](https://bit.ly/3GULsv3) ainsi que [Nodemon](https://bit.ly/3qE49gF) et les modules [Node.js](https://nodejs.org/en/) : 
 
