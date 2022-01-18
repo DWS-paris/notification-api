@@ -1,0 +1,31 @@
+{
+  "name": "notification-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db": "json-server --watch ./data/db.json",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DWS-paris/notification-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DWS-paris/notification-api/issues"
+  },
+  "homepage": "https://github.com/DWS-paris/notification-api#readme",
+  "dependencies": {
+    "dotenv": "^14.1.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.2",
+    "node-fetch": "^2.0.0",
+    "path": "^0.12.7",
+    "socket.io": "^4.4.1",
+    "web-push": "^3.4.5"
+  }
+}
