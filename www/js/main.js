@@ -33,6 +33,13 @@ Function to set socketClient
       li.appendChild( addButton('subscriber-id', jsonResponse.id, `User ${jsonResponse.navigator} ${jsonResponse.id}`) )
       subscriberList.appendChild(li)
     });
+
+    // Bind 'delete-subsciption' emitter
+    socket.on('delete-subsciption', async msg => {
+      // Display subscribers
+      subscriberList.innerHTML = ``;
+      await displaySubscribers(subscriberList);
+    });
   }
 //
 

@@ -1,20 +1,11 @@
 {
   "subscribers": [
     {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/cL9xeDDF7ZI:APA91bE3FXAx1FsCf_Wj8A-kumBGesryHESUB7PPWZYoyq6Xd4qAZmrLgjvDzEllCppW1Qd_ZoUSBvSiyMlINM6bwxS8sHIpDXhH0RZhB1bLYYoRA5M9PKjDJcnaVSygC5Z3EcvjgiB9",
+      "endpoint": "https://updates.push.services.mozilla.com/wpush/v2/gAAAAABh5ssEztnU20xFsRMKN34AZVlVu2VWNpJqXc2O8XfM_fjNxkngMxYAxHWE1zXH_ba80cqAoxuS4MmDu0Rcq8aUl5hEStyPkcPP2jR7F74z-Gr6G2qKOyy9jZp6mPtCquDYu9rWRFPg7FQa5B3sdTEPvWe5MDLkH7JvkJUdD3iuMKuJHGo",
       "expirationTime": null,
       "keys": {
-        "p256dh": "BDjEt_KZIIXazrif-5_cUkXLlR-OT8OIi_n-kjSKA_oDtmmzo0dyLD5GgZLKd4hkE7u_-sWv0lyOFags5GRyFh0",
-        "auth": "0PhbZyDujOZ2zyiZsTPwpw"
-      },
-      "id": 1
-    },
-    {
-      "endpoint": "https://updates.push.services.mozilla.com/wpush/v2/gAAAAABh5rtkxjo3L-kCR6_ur71zd6gm83GPoqQmfnMRxeqW7VUv-kA4FU6PneHIqDDcchfnyIz_4XKWVHZ94UzGaye_F7JerruvBqwqVckjMiTBi-nKEp_kHYRqovaIpoT0c9rZKLhwbOCNtjGig6F5HyRF5sxFOeZWqilf1QU6qDwNDeOIWUM",
-      "expirationTime": null,
-      "keys": {
-        "auth": "zTD48C_7RMV6ELEfjSHLPw",
-        "p256dh": "BJ3r-0N0Pp507w9zlZJLEjcWAmYerWvA9CQ2DsU5XpmHzIC2l3h2jgtvIATXsOmi5Xmr8hzWAzqe_iqqOwmLZtA"
+        "auth": "rFzbQpdgkVoi-thWrDcrBA",
+        "p256dh": "BMTXxlGbRr_5P4JrLFPbkPWib5kM0Bk28YnpfIiCVOkyY_KpR2xL9ISQUwCHbPKYGl_68HAJ3uetBbvYjW1s-uc"
       },
       "id": 2
     }

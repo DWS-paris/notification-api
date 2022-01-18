@@ -8,6 +8,8 @@ Imports
     const ejs = require('ejs'); //=> https://www.npmjs.com/package/ejs
     const webpush = require('web-push'); //=> https://www.npmjs.com/package/web-push
     const fetch = require('node-fetch'); //=> https://www.npmjs.com/package/node-fetch
+
+    const { initWebPush, defineService, sendPushNotification, autoPush } = require('./services/webpush.service');
 //
 
 /* 
@@ -56,12 +58,8 @@ class ServerClass{
         this.app.use(express.json({limit: `20mb`}));
         this.app.use(express.urlencoded({ extended: true }))
 
-        // Set web push details
-        webpush.setVapidDetails(
-            `mailto:julien@dwsapp.io`,
-            process.env.PUBLIC_KEY,
-            process.env.PRIVATE_KEY
-        );
+        // Init WebPush
+        initWebPush();
 
         // Set Scket.io
         this.io.on('connection', (socket) => {
@@ -106,13 +104,8 @@ class ServerClass{
             // Get subscriber
             const subscriber = await fetch(`${process.env.JSON_SERVER_URL}/subscribers/${req.body.subscriber}`).then( data => data.json() );
 
-            // Define navigator service
-            let navigatoreName = `webpush`;
-            if( subscriber.endpoint.indexOf('googleapis') !== -1 ){ navigatoreName = 'googleapis' }
-            else if( subscriber.endpoint.indexOf('services.mozilla') !== -1 ){ navigatoreName = 'services.mozilla' }
-
             // Send push notification
-            await this.sendPushNotification(`DWSapp new notification`, `Hello from another navigator`, subscriber);
+            await sendPushNotification(`DWSapp new notification`, `Message send by the API`, subscriber, this.io);
 
             // Send success request
             return res.status(200).json({
@@ -143,12 +136,10 @@ class ServerClass{
                 const newSubscriber = await fetch(`${process.env.JSON_SERVER_URL}/subscribers`, options).then( data => data.json() );
 
                 // Define navigator service
-                let navigatoreName = `webpush`;
-                if( newSubscriber.endpoint.indexOf('googleapis') !== -1 ){ navigatoreName = 'googleapis' }
-                else if( newSubscriber.endpoint.indexOf('services.mozilla') !== -1 ){ navigatoreName = 'services.mozilla' }
+                let navigatoreName = defineService(newSubscriber);
 
                 // Send push notification
-                await this.sendPushNotification(`DWSapp subscription active`, `Subscribed ${navigatoreName} ${newSubscriber.id}`, newSubscriber);
+                await sendPushNotification(`DWSapp subscription active`, `Subscribed ${navigatoreName} ${newSubscriber.id}`, newSubscriber, this.io);
 
                 // Emit socket
                 this.io.emit('new-subsciption', JSON.stringify({ id: newSubscriber.id, navigator: navigatoreName }));
@@ -164,12 +155,10 @@ class ServerClass{
                     // Check item id
                     if(item.id !== newSubscriber.id){
                         // Define navigator service
-                        let navigatoreName = `webpush`;
-                        if( item.endpoint.indexOf('googleapis') !== -1 ){ navigatoreName = 'googleapis' }
-                        else if( item.endpoint.indexOf('services.mozilla') !== -1 ){ navigatoreName = 'services.mozilla' }
+                        let navigatoreName = defineService(item);
 
                         // Send push notification
-                        await this.sendPushNotification(`DWSapp new subscription`, `Subscribed ${navigatoreName} ${item.id}`, item);
+                        await sendPushNotification(`DWSapp new subscription`, `Subscribed ${navigatoreName} ${item.id}`, item, this.io);
                     }
                 }
 
@@ -185,12 +174,10 @@ class ServerClass{
             }
             else{
                 // Define navigator service
-                let navigatoreName = `webpush`;
-                if( newSubscriber.endpoint.indexOf('googleapis') !== -1 ){ navigatoreName = 'googleapis' }
-                else if( newSubscriber.endpoint.indexOf('services.mozilla') !== -1 ){ navigatoreName = 'services.mozilla' };
+                let navigatoreName = defineService(newSubscriber);
 
                 // Send push notification
-                await this.sendPushNotification(`DWSapp Push Notification`, `Already subscribed ${newSubscriber.id} with ${navigatoreName}`, newSubscriber);
+                await sendPushNotification(`DWSapp Push Notification`, `Already subscribed ${newSubscriber.id} with ${navigatoreName}`, this.io, newSubscriber);
 
                 // Send success request
                 return res.status(200).json({
@@ -211,128 +198,14 @@ class ServerClass{
     launch(){
         // Start server
         this.server.listen(this.port, () => {
+            // Debug
             console.log({
                 node: `http://localhost:${this.port}`,
             });
         });
 
         // Auto push notification
-        //this.autoPush();
-    }
-
-    // Send push notification => https://developer.mozilla.org/fr/docs/Web/API/ServiceWorkerRegistration/showNotification
-    async sendPushNotification(title, content, subscriber){
-        // Set notification
-        const notificationContent = {
-            title: title,
-            content: {
-                body: content,
-                badge: "/img/icon-72x72.png",
-                icon: "/img/icon-72x72.png",
-                image: "/img/icon-72x72.png",
-                lang: 'en',
-                silent: true,
-                timestamp: new Date(),
-                actions: [
-                    {
-                        action: 'open-site',
-                        title: 'Open site',
-                    }
-                ]
-            }
-        }
-
-        // Send push notification
-        webpush.sendNotification(subscriber, JSON.stringify(notificationContent) )
-        .then( pushResponse => { 
-            console.log('Push Notification', { status: pushResponse.statusCode }) 
-        })
-        .catch( async pushError => {
-            // Check error
-            if( pushError.body.indexOf('unsubscribed or expired') !== -1 ){
-                console.log('unsubscribed or expired')
-                // Delete subscriber
-                await fetch(
-                    `${process.env.JSON_SERVER_URL}/subscribers/${subscriber.id}`,
-                    {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
-                
-                // Debug
-                console.log('Delete subscriber', { id : subscriber.id })
-            }
-        })
-    }
-
-    async autoPush(){
-        // Set auto push notification to all subscribers
-        let idx = 0;
-        setInterval(async () => {
-            // Increment idx
-            idx++;
-
-            // Check subscriber
-            const subscribers = await fetch(`http://localhost:3000/subscribers`).then( data => data.json() );
-
-            // Loop on subscribers
-            if(subscribers.length !== 0){
-                for(let item of subscribers){
-                    // Send push notification => https://developer.mozilla.org/fr/docs/Web/API/ServiceWorkerRegistration/showNotification
-                    const notificationContent = {
-                        title: `DWSapp Push Notification`,
-                        content: {
-                            body: `Auto push ${idx} to ${item.keys.auth}`,
-                            badge: "/img/icon-72x72.png",
-                            icon: "/img/icon-72x72.png",
-                            image: "/img/icon-72x72.png",
-                            lang: 'en',
-                            silent: true,
-                            timestamp: new Date(),
-                            actions: [
-                                {
-                                    action: 'open-site',
-                                    title: 'Open site',
-                                },
-                                {
-                                    action: 'more-actions',
-                                    title: 'More action',
-                                }
-                            ]
-                        }
-                    }
-
-                    // Send push notification
-                    webpush.sendNotification(item, JSON.stringify(notificationContent) )
-                    .then( pushResponse => { 
-                        console.log('Push Notification', { idx, status: pushResponse.statusCode }) 
-                        console.log(pushResponse) 
-                    })
-                    .catch( async pushError => {
-                        console.log(pushError)
-                        // Check error
-                        /* if(pushError.headers.connection.toUpperCase() === 'CLOSE'){
-                            // Delete subscriber
-                            await fetch(
-                                `http://localhost:3000/subscribers/${item.id}`,
-                                {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                }
-                            );
-                            
-                            // Debug
-                            console.log('Delete subscriber', { id : item.id })
-                        } */
-                    })
-                }
-            }
-        }, 5000)
+        //autoPush(5000, this.io);
     }
 }
 //
